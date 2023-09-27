@@ -1,0 +1,18 @@
+# requests are guranteed to be available
+# limits prevent the containers from going over the allocated resources
+# kubectl describe node output "Table" is used by the scheduler to schedule pods on nodes
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-limits
+spec:
+  containers:
+  - name: resources-container
+    image: nginx
+    resources: 
+      requests:
+        memory: "64Mi"
+        cpu: "0.5"
+      limits:
+        memory: "128Mi"
+        cpu: "1"

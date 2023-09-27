@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: mc
+  name: mc
+spec:
+  volumes:
+  - name: configvol
+    configMap:
+      name: nginx-8081
+  containers:
+  - image: nginx
+    name: nginx1
+  - image: nginx
+    name: nginx2
+    volumeMounts:
+    - name: configvol
+      mountPath: /etc/nginx/conf.d
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}

@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: v1-deploy
+  name: v2-deploys
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: v1-deploy
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: v1-deploy
+        deploy: canary
+    spec:
+      containers:
+      - image: nginx:1.17.3-alpine
+        name: nginx
+        resources: {}
+status: {}

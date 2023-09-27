@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-with-hook
+spec:
+  containers:
+    - image: nginx
+      name: pod-with-hook
+      command:
+        [
+          "sh",
+          "-c",
+          'i=0; while [ "$i" -lt 300 ]; do echo "$i: $(date)"; i=$((i+1)); sleep 1; done',
+        ]
+      resources:
+        requests:
+          cpu: "50m"
+          memory: "64Mi"
+        limits:
+          cpu: "100m"
+          memory: "128Mi"
+      lifecycle:
+        postStart:
+          exec:
+            command: ["/bin/sh", "-c", "ls -RHlL usr > list.txt; cat list.txt"]
+        preStop:
+          exec:
+            command:
+              [
+                "/bin/sh",
+                "-c",
+                'i=0; while [ "$i" -lt 1 ]; do echo "$i: preStop $(date) \n"; i=$((i+1)); sleep 1; done',
+              ]

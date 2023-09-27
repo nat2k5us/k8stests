@@ -1,0 +1,35 @@
+# Order of helmfile properties precedence (i.e if property is set at level 0 it will take precedence)
+# command line --set key=value ------------------------------------------{ 0 }
+# helm/helmfile.yaml --------------------------------------------------- { 1 }
+#   > helm/helmfiles.d/10-gemini.yaml -----------------------------------{ 2 }
+#      > helm/helmfiles.d/environments/eng/values.yaml ------------------{ 3 }
+#      > helm/helmfiles.d/charts/gemini/values.yaml  --------------------{ 4 }
+#default values to set for args along with dedicated keys that can be set by contributers, cli args take precedence over these
+
+helmDefaults:
+  historyMax: 3
+
+releases:
+  - name: goredis
+    chart: charts/goredis
+    missingFileHandler: Error
+    createNamespace: false
+    namespace: {{ env "NAMESPACE" | default "default" }}
+    hooks:
+    values:
+      - environment: {{ .Environment.Name }}
+      - environments/{{.Environment.Name}}/goredis.yaml
+
+#
+# Advanced Configuration: Environments
+#
+
+# The list of environments managed by helmfile.
+#
+# The default is `environments: {"default": {}}` which implies:
+#
+# - `{{ .Environment.Name }}` evaluates to "default"
+# - `{{ .Values }}` being empty
+environments:
+  eng: {}
+  prod: {}

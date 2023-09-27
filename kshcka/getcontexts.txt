@@ -1,0 +1,5 @@
+CURRENT   NAME                                                        CLUSTER                                                     AUTHINFO                                                    NAMESPACE
+          arn:aws:eks:us-east-1:777841263786:cluster/tp-prod-usva-2   arn:aws:eks:us-east-1:777841263786:cluster/tp-prod-usva-2   arn:aws:eks:us-east-1:777841263786:cluster/tp-prod-usva-2   position-groups
+          arn:aws:eks:us-east-1:805199394057:cluster/tp-eng-usva-2    arn:aws:eks:us-east-1:805199394057:cluster/tp-eng-usva-2    arn:aws:eks:us-east-1:805199394057:cluster/tp-eng-usva-2    eng-lightspeed-jp
+*         docker-desktop                                              docker-desktop                                              docker-desktop                                              
+          microk8s                                                    microk8s-cluster                                            admin                                                       

@@ -1,0 +1,61 @@
+frontend-deployment
+turing-deployment
+cache-deployment-5447995999-q762h
+/opt/CKAD00011/broken.txt
+"while true; do { echo -e 'HTTP/2.1 200 OK\r\n'; echo -e are we ok?;  }
+          | nc -l 0.0.0.0:8443; done"
+
+backend-deployment  
+frontend-deployment-fb7ff9fdd-9s5gm 
+deployment.apps/honeybee-deployment
+curl http://k8s-master-0:30000/
+
+~/settled-leopard/current-liger-deployment.yaml
+
+docker image creation and then export to a tar file  (see help 'docker image save' for more information)
+
+Network Policy Question 
+A pod should be accessible only from two other pods
+Network policy's are already created - modify them - don't create new network policy
+
+No Question in Persistent Volumes 
+
+Question on pod with NGINX_PORT
+
+04-01. Create a namespace called netpol-namespace. 
+Create a pod called web-pod using the nginx image and label the pod tier=web. 
+Create a pod called app-pod using the nginx image and label the pod tier=app.
+Create a pod called db-pod using the nginx image and label the pod tier=db. 
+Create Network Policies that allow the web-pod to connect with the app-pod on port 80 only.
+
+```
+k create ns netpol-namespace
+k run web-pod --image=nginx -l tier=web
+k run app-pod --image=nginx -l tier=app
+k run db-pod --image=nginx -l tier=db
+
+Q. docker name and tag given a dockerfile
+docker archive above image to  disk tar
+docker build -t name .
+docker tag name:tag
+docker ps -a # shows containers with names
+docker export container_name  > nginx.tar
+
+
+canary deployment - current-chipmunk 
+1. deploy canary-chipmonk 5 replicas
+2. Keep maximum pods to 10 pods
+3. introduce 20% of canary
+
+CronJob
+      - name: pi
+        image: perl:5.34.0
+        command: ["perl",  "-Mbignum=bpi", "-wle", "print bpi(2000)"]
+      restartPolicy: Never
+
+
+Question: 
+Find broken pod in all namespaces, output history in file they provide. 
+- Broken pod in namespace (SOMENAME), output the history in //filenameprovided.txt ---- Use echo 
+<alan>/<turing-deployment>
+cat //filenameprovided.txt

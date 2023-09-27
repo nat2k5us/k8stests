@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: {{ template "dummy-chart.fullname" . }}
+data:
+    someKey: {{ .Values.someValue }}
+    file: |-
+    {{ .Files.Get "data.yaml" | indent 4 }}

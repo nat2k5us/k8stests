@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: secret-handler
+  name: secret-handler
+spec:
+  volumes:
+  - name: secret-volume
+    secret:
+      secretName: secret2
+  containers:
+  - env:
+    - name: SECRET1_USER
+      valueFrom:
+        secretKeyRef:
+          name: secret1
+          key: user    
+    - name: SECRET1_PASS
+      valueFrom:
+        secretKeyRef:
+          name: secret1
+          key: pass
+    image: nginx
+    name: secret-handler
+    volumeMounts:
+    - name: secret-volume
+      mountPath: /tmp/secret2
+

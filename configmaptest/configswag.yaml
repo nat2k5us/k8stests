@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: test-cm-works
+data:
+  someKey: "test"
+  swagger.yaml: |-
+    {{ toString (.Files.Get "files/swagger.yaml") }}
+
+

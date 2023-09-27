@@ -1,0 +1,10 @@
+helmDefaults:
+    historyMax: 3
+    createNamespace: false
+    
+releases:
+  - name: locust-loadtester
+    chart: locustloadtest
+    set:
+      - name: "image.tag"
+        value: "1.2.3"

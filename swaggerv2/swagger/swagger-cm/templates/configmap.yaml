@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: swagger-configmap-v1
+data:
+  swagger.yaml: |-
+{{ .Files.Get "swagger.yaml" | indent 4}}
+    

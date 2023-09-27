@@ -1,0 +1,4 @@
+name: hello
+version: "1.0"
+apiVersion: v2
+icon: https://www.icons.com/hello-icon.ico

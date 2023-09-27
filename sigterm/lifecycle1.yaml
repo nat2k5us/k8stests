@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-lifecycle-svc
+  labels:
+    app: hello-lifecycle
+spec:
+  selector:
+    app: hello-lifecycle
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-lifecycle
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hello-lifecycle
+  template:
+    metadata:
+      labels:
+        app: hello-lifecycle
+    spec:
+      terminationGracePeriodSeconds: 30
+      initContainers:
+        - name: init
+          image: busybox
+          command: ["sh", "-c", "echo waiting for lifecycle"]
+      containers:
+        - name: lifecycle-container
+          image: busybox
+          command:
+            [
+              "sh",
+              "-c",
+              "echo $(date +%H:%M:%S) waiting for lifecycle  ",
+              "echo $(date +%H:%M:%S): Main Container is Running | tee -a /timing && /bin/sleep 1800",
+            ]

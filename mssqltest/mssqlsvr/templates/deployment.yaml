@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "mssqlsvr.fullname" . }}
+  labels:
+    {{- include "mssqlsvr.labels" . | nindent 4 }}
+spec:
+{{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+{{- end }}
+  selector:
+    matchLabels:
+      {{- include "mssqlsvr.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+    {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      labels:
+        {{- include "mssqlsvr.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name:  ACCEPT_EULA
+              value:  "Y"
+            - name:  SA_PASSWORD
+              value:  {{ .Values.database.password | quote }}
+          ports:
+            - name: mssql
+              containerPort: {{ .Values.service.port }}
+          volumeMounts:
+          - mountPath: /var/opt/mssql/data
+            name: "{{ .Chart.Name }}-pv"
+      volumes:
+      - name: "{{ .Chart.Name }}-pv"
+        persistentVolumeClaim:
+            claimName: "{{ .Chart.Name }}-pvc"

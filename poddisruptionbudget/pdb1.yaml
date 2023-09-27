@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pdb-nginx
+  labels:
+    app: pdb-nginx
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: pdb-nginx
+  minReadySeconds: 5
+  template:
+    metadata:
+      labels:
+        app: pdb-nginx
+    spec:
+      containers:
+        - name: pdb-nginx
+          image: nginx:stable
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 20
+            timeoutSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            timeoutSeconds: 10
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "100m"
+              memory: "128Mi"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pdb-nginx-svc
+spec:
+  selector:
+    app: pdb-nginx
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: LoadBalancer
+
+---
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: pdbtest
+spec:
+  minAvailable: 3
+  selector:
+    matchLabels:
+      app: pdb-nginx

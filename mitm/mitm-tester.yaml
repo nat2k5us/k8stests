@@ -1,0 +1,536 @@
+apiVersion: v1
+data:
+  haproxy.cfg: |
+    global
+        log /dev/log    local0
+        log /dev/log    local1 notice
+        user haproxy
+        group haproxy
+        daemon
+        pidfile /tmp/haproxy.pid
+
+
+    defaults
+        log global
+        mode http
+        option httplog
+        timeout connect 5s
+        timeout client 30s
+        timeout server 30s
+
+    frontend http-in
+        bind *:8080 ssl crt /etc/haproxy/certs/combined.pem
+        default_backend servers
+
+    backend servers
+        server server1 external-test-10.wb3dev.jp:443 ssl verify none
+kind: ConfigMap
+metadata:
+  name: haproxy-config
+  namespace: eng-lightspeed-jp
+---
+apiVersion: v1
+data:
+  wolf_session_detection.py: |
+    from mitmproxy import http
+    from xml.etree import ElementTree as ET
+
+    # Keep a dictionary for aa_accd and their latest wolfSessionKey
+    aa_accd_dict = {}
+
+    def load(loader):
+        loader.add_option(
+            name="stream_large_bodies",
+            typespec=int,
+            default=1024,
+            help="Stream response bodies larger than this size",
+        )
+
+    def configure(updated):
+        ctx.options.stream_large_bodies = ctx.options.stream_large_bodies
+
+    def request(flow: http.HTTPFlow):
+        # Ignore requests to tradestation.com domain
+        if flow.request.host.endswith("tradestation.com") or flow.request.host.endswith("tradestation.io"):
+            return
+
+        if flow.request.host.endswith("external-test-10.wb3dev.jp"):
+          flow.request.host = "haproxy-service"
+          flow.request.port = 8080
+
+        if flow.request.method != "CONNECT":
+            xml_request = flow.request.content
+            try:
+                root = ET.fromstring(xml_request)
+                wolf_session_key = root.find(".//wolfSessionKey")
+                aa_accd = root.find(".//aa_accd")
+
+                if wolf_session_key is not None and aa_accd is not None:
+                    wolf_session_key = wolf_session_key.text
+                    aa_accd = aa_accd.text
+
+                    if aa_accd in aa_accd_dict:
+                        if wolf_session_key != aa_accd_dict[aa_accd][-1]:
+                            if wolf_session_key in aa_accd_dict[aa_accd]:
+                                print(f"!!! Request sent with old wolfSessionKey: {wolf_session_key} for aa_accd: {aa_accd}")
+                            else:
+                                print(f"!!! Set new wolfSessionKey: {wolf_session_key} for aa_accd: {aa_accd}")
+                                aa_accd_dict[aa_accd].append(wolf_session_key)
+                    else:
+                        aa_accd_dict[aa_accd] = [wolf_session_key]
+            except ET.ParseError:
+                pass
+kind: ConfigMap
+metadata:
+  name: mitmproxy-script
+  namespace: eng-lightspeed-jp
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    kubernetes.io/psp: nite.default
+  labels:
+    app: mitmproxy
+  name: mitmproxy-deployment-7f8bf45477-dv4s7
+  namespace: eng-lightspeed-jp
+spec:
+  containers:
+    - args:
+        - -s
+        - /app/wolf_session_detection.py
+        - --listen-host
+        - 0.0.0.0
+        - --listen-port
+        - "8080"
+        - --ssl-insecure
+        - -q
+        - --set
+        - console_eventlog=false
+      command:
+        - mitmdump
+      env:
+        - name: OPENSSL_CONF
+          value: /etc/ssl/openssl.cnf
+      image: mitmproxy/mitmproxy:latest
+      imagePullPolicy: Always
+      name: mitmproxy
+      resources:
+        limits:
+          cpu: "1"
+          memory: 1Gi
+        requests:
+          cpu: 500m
+          memory: 500Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+        - mountPath: /etc/ssl/openssl.cnf
+          name: openssl-config
+          subPath: openssl.cnf
+        - mountPath: /app
+          name: script-volume
+  volumes:
+    - configMap:
+        defaultMode: 420
+        name: openssl-config
+      name: openssl-config
+    - configMap:
+        defaultMode: 420
+        name: mitmproxy-script
+      name: script-volume
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    kubernetes.io/psp: nite.default
+  labels:
+    app: haproxy
+    pod-template-hash: 6c9cf957c6
+  name: haproxy-deployment-6c9cf957c6-4lhx4
+  namespace: eng-lightspeed-jp
+spec:
+  containers:
+    - image: haproxy:2.4
+      imagePullPolicy: IfNotPresent
+      name: haproxy
+      ports:
+        - containerPort: 8080
+          protocol: TCP
+      resources:
+        limits:
+          cpu: "1"
+          memory: 1Gi
+        requests:
+          cpu: 500m
+          memory: 500Mi
+      volumeMounts:
+        - mountPath: /usr/local/etc/haproxy/haproxy.cfg
+          name: haproxy-config
+          subPath: haproxy.cfg
+        - mountPath: /etc/haproxy/certs
+          name: haproxy-certs
+        - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+          name: kube-api-access-bkt2m
+          readOnly: true
+  volumes:
+    - configMap:
+        defaultMode: 420
+        name: haproxy-config
+      name: haproxy-config
+    - name: haproxy-certs
+      secret:
+        defaultMode: 420
+        secretName: haproxy-certs
+---
+apiVersion: v1
+items:
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: haproxy-service
+      namespace: eng-lightspeed-jp
+    spec:
+      clusterIP: 172.20.200.246
+      clusterIPs:
+        - 172.20.200.246
+      internalTrafficPolicy: Cluster
+      ipFamilies:
+        - IPv4
+      ipFamilyPolicy: SingleStack
+      ports:
+        - port: 8080
+          protocol: TCP
+          targetPort: 8080
+      selector:
+        app: haproxy
+      sessionAffinity: None
+      type: ClusterIP
+    status:
+      loadBalancer: {}
+---
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: mitm-service
+    namespace: eng-lightspeed-jp
+  spec:
+    clusterIP: 172.20.140.37
+    clusterIPs:
+      - 172.20.140.37
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+      - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+      - port: 8080
+        protocol: TCP
+        targetPort: 8080
+    selector:
+      app: mitmproxy
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+---
+apiVersion: v1
+items:
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      annotations:
+        deployment.kubernetes.io/revision: "1"
+      generation: 1
+      name: haproxy-deployment
+      namespace: eng-lightspeed-jp
+    spec:
+      progressDeadlineSeconds: 600
+      replicas: 1
+      revisionHistoryLimit: 10
+      selector:
+        matchLabels:
+          app: haproxy
+      strategy:
+        rollingUpdate:
+          maxSurge: 25%
+          maxUnavailable: 25%
+        type: RollingUpdate
+      template:
+        metadata:
+          creationTimestamp: null
+          labels:
+            app: haproxy
+        spec:
+          containers:
+            - image: haproxy:2.4
+              imagePullPolicy: IfNotPresent
+              name: haproxy
+              ports:
+                - containerPort: 8080
+                  protocol: TCP
+              resources:
+                limits:
+                  cpu: "1"
+                  memory: 1Gi
+                requests:
+                  cpu: 500m
+                  memory: 500Mi
+              terminationMessagePath: /dev/termination-log
+              terminationMessagePolicy: File
+              volumeMounts:
+                - mountPath: /usr/local/etc/haproxy/haproxy.cfg
+                  name: haproxy-config
+                  subPath: haproxy.cfg
+                - mountPath: /etc/haproxy/certs
+                  name: haproxy-certs
+          dnsPolicy: ClusterFirst
+          restartPolicy: Always
+          schedulerName: default-scheduler
+          securityContext: {}
+          terminationGracePeriodSeconds: 30
+          volumes:
+            - configMap:
+                defaultMode: 420
+                name: haproxy-config
+              name: haproxy-config
+            - name: haproxy-certs
+              secret:
+                defaultMode: 420
+                secretName: haproxy-certs
+---
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      deployment.kubernetes.io/revision: "191"
+      meta.helm.sh/release-name: lightspeed-useq
+      meta.helm.sh/release-namespace: eng-lightspeed-jp
+    creationTimestamp: "2022-05-18T17:23:38Z"
+    generation: 1280
+    labels:
+      app: lightspeed-useq
+      app.kubernetes.io/managed-by: Helm
+      chart: lightspeed-0.1.0
+    name: lightspeed-useq
+    namespace: eng-lightspeed-jp
+    resourceVersion: "851211175"
+    uid: edda9e9c-e185-4176-afd0-2e1934355b6f
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 3
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: lightspeed-useq
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          kubectl.kubernetes.io/restartedAt: "2023-04-19T15:16:02-05:00"
+          prometheus.io/path: /metrics
+          prometheus.io/port: "8080"
+          prometheus.io/scrape: "true"
+        creationTimestamp: null
+        labels:
+          app: lightspeed-useq
+      spec:
+        containers:
+          - env:
+              - name: HTTPS_PROXY
+                value: http://mitm-service:8080
+              - name: HTTP_PROXY
+                value: http://mitm-service:8080
+              - name: LIGHTSPEED_INSECURE_TLS
+                value: "true"
+              - name: LIGHTSPEED_PORT
+                value: "80"
+              - name: LIGHTSPEED_REDIS_CLUSTER_HOST
+                value: redis-master:6379
+              - name: LIGHTSPEED_HEALTH_PORT
+                value: "8080"
+              - name: LIGHTSPEED_POLLED_ENDPOINTS_INTERVAL
+                value: "10000"
+              - name: LIGHTSPEED_QUIET
+                value: "true"
+              - name: LIGHTSPEED_VERBOSE
+                value: "false"
+              - name: LIGHTSPEED_AUTH_HEADER
+                value: x-lightspeed-authorization
+              - name: LIGHTSPEED_AUTH_USERNAME
+                valueFrom:
+                  secretKeyRef:
+                    key: basic_auth.username
+                    name: lightspeed
+              - name: LIGHTSPEED_AUTH_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    key: basic_auth.password
+                    name: lightspeed
+              - name: LIGHTSPEED_PROBE_USERNAME
+                valueFrom:
+                  secretKeyRef:
+                    key: probe.username
+                    name: lightspeed
+              - name: LIGHTSPEED_PROBE_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    key: probe.password
+                    name: lightspeed
+              - name: LIGHTSPEED_PROBE_API_KEY
+                valueFrom:
+                  secretKeyRef:
+                    key: probe.api_key
+                    name: lightspeed
+              - name: LIGHTSPEED_PROBE_API_SECRET
+                valueFrom:
+                  secretKeyRef:
+                    key: probe.api_secret
+                    name: lightspeed
+              - name: LIGHTSPEED_ENV_CONFIG_FILE
+                value: /etc/config/env-config.yaml
+              - name: LIGHTSPEED_POD_NAME
+                valueFrom:
+                  fieldRef:
+                    apiVersion: v1
+                    fieldPath: metadata.name
+            image: 805199394057.dkr.ecr.us-east-1.amazonaws.com/mobile-services/japan/lightspeed:DEV-850110901.cfe2e29
+            imagePullPolicy: Always
+            lifecycle:
+              preStop:
+                exec:
+                  command:
+                    - sleep
+                    - "30"
+            livenessProbe:
+              failureThreshold: 3
+              httpGet:
+                path: /healthz
+                port: 8080
+                scheme: HTTP
+              initialDelaySeconds: 10
+              periodSeconds: 20
+              successThreshold: 1
+              timeoutSeconds: 10
+            name: lightspeed-useq
+            ports:
+              - containerPort: 80
+                name: http
+                protocol: TCP
+            readinessProbe:
+              failureThreshold: 3
+              httpGet:
+                path: /healthy
+                port: 8080
+                scheme: HTTP
+              periodSeconds: 10
+              successThreshold: 1
+              timeoutSeconds: 1
+            resources:
+              limits:
+                cpu: 500m
+                memory: 1Gi
+              requests:
+                cpu: 500m
+                memory: 1Gi
+            terminationMessagePath: /dev/termination-log
+            terminationMessagePolicy: File
+            volumeMounts:
+              - mountPath: /etc/config
+                name: config-volume
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 45
+        volumes:
+          - configMap:
+              defaultMode: 420
+              items:
+                - key: env.config
+                  path: env-config.yaml
+              name: lightspeed
+            name: config-volume
+---
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      deployment.kubernetes.io/revision: "18"
+    generation: 18
+    name: mitmproxy-deployment
+    namespace: eng-lightspeed-jp
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: mitmproxy
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: mitmproxy
+      spec:
+        containers:
+          - args:
+              - -s
+              - /app/wolf_session_detection.py
+              - --listen-host
+              - 0.0.0.0
+              - --listen-port
+              - "8080"
+              - --ssl-insecure
+              - -q
+              - --set
+              - console_eventlog=false
+            command:
+              - mitmdump
+            env:
+              - name: OPENSSL_CONF
+                value: /etc/ssl/openssl.cnf
+            image: mitmproxy/mitmproxy:latest
+            imagePullPolicy: Always
+            name: mitmproxy
+            resources:
+              limits:
+                cpu: "1"
+                memory: 1Gi
+              requests:
+                cpu: 500m
+                memory: 500Mi
+            terminationMessagePath: /dev/termination-log
+            terminationMessagePolicy: File
+            volumeMounts:
+              - mountPath: /etc/ssl/openssl.cnf
+                name: openssl-config
+                subPath: openssl.cnf
+              - mountPath: /app
+                name: script-volume
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+          - configMap:
+              defaultMode: 420
+              name: openssl-config
+            name: openssl-config
+          - configMap:
+              defaultMode: 420
+              name: mitmproxy-script
+            name: script-volume

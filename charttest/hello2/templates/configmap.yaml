@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata: 
+    name: hello-config
+data:
+  quote1: {{ .Values.quotes.nemo | quote }} 
+  quote2: {{ .Values.quotes.sponebob |  quote }}
+  
+  quote3: {{ .Values.quotes.test |  quote }}

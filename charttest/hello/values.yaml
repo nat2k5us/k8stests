@@ -1,0 +1,5 @@
+Replicas: 1
+
+sea:
+  name: "Nemo"
+  msg: "Blow those Bubbles"

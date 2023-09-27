@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: busybox-deployment
+  labels:
+    app: my-busybox
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: my-busybox
+  template:
+    metadata:
+      labels:
+        app: my-busybox
+    spec:
+      containers:
+        - name: busybox
+          image: busybox
+          ports:
+            - containerPort: 80
+          resources:
+            limits:
+              cpu: "25m"
+              memory: "512Mi"

@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: kplabls-selector
+  name: kplabls-selector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kplabls-selector
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: kplabls-selector
+    spec:
+      containers:
+      - image: nginx
+        name: nginx
+      nodeSelector: 
+        disk: ssd
+status: {}

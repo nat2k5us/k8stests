@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: hello-config
+data:
+    name: {{ .Values.sea.name}}
+    msg: {{  .Values.sea.msg }}

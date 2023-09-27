@@ -1,0 +1,24 @@
+# networkpolicy that can control traffic to db
+# traffic from pod a to db is allowed
+# traffice from pod b to db is not allowed
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: db
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              app: a
+      ports:
+        - protocol: TCP
+          port: 6379
+

@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: chipmonk
+  name: canary
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chipmonk
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: chipmonk
+    spec:
+      volumes:
+      - name: sharedvol
+        emptyDir: {}
+      initContainers:
+        - name: web-container
+          image: busybox
+          command: ["/bin/sh", "-c",'echo "hello $MY_POD_NAME" > /tmp/web-content/index.html' ]
+          env:
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          volumeMounts:
+          - name: sharedvol
+            mountPath: /tmp/web-content/
+      containers:
+      - image: nginx
+        name: nginx
+        volumeMounts:
+        - name: sharedvol
+          mountPath: /usr/share/nginx/html

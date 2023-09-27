@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: logs-pod
+  namespace: default
+  labels:
+    app: logs-pod
+spec:
+  containers:
+    - name: ping-container
+      image: busybox
+      command: ["ping"]
+      args: ["google.com"]
+      resources:
+        limits:
+          cpu: 200m
+          memory: 500Mi
+        requests:
+          cpu: 100m
+          memory: 200Mi
+    - name: ping-container-ip
+      image: busybox
+      command: ["ping"]
+      args: ["8.8.8.8"]
+      resources:
+        limits:
+          cpu: 200m
+          memory: 500Mi
+        requests:
+          cpu: 100m
+          memory: 200Mi
+  restartPolicy: Always

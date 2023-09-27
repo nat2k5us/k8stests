@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lifecycle
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: lifecycle
+  template:
+    metadata:
+      labels:
+        app: lifecycle
+    spec:
+      terminationGracePeriodSeconds: 30
+      initContainers:
+        - name: init
+          image: busybox
+          command:
+            [
+              "sh",
+              "-c",
+              "echo $(date +%H:%M:%S): InitContainer is Running | tee -a /timing  && sleep 10",
+            ]
+      containers:
+        - name: lifecycle-container
+          image: busybox
+          command:
+            [
+              "sh",
+              "-c",
+              "echo $(date +%H:%M:%S): Main Container is Running | tee -a /timing && /bin/sleep 180",
+            ]
+          readinessProbe:
+            exec:
+              command:
+                [
+                  "sh",
+                  "-c",
+                  "echo $(date +%H:%M:%S): readinessProbe >> /timing && test -f /tmp/ready",
+                ]
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command:
+                [
+                  "sh",
+                  "-c",
+                  "echo $(date +%H:%M:%S): livenessProbe >> /timing && test -f /tmp/live",
+                ]
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 1
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  [
+                    "sh",
+                    "-c",
+                    "echo $(date +%H:%M:%S): postStart >> /timing && sleep 10 && touch /tmp/ready /tmp/live  && echo $(date +%H:%M:%S): end postStart >> /timing",
+                  ]
+            preStop:
+              exec:
+                command:
+                  [
+                    "sh",
+                    "-c",
+                    "echo $(date +%H:%M:%S): preStop >> /timing && sleep 10 && rm -f /tmp/ready /tmp/live && echo $(date +%H:%M:%S): end preStop >> /timing",
+                  ]
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "100m"
+              memory: "128Mi"

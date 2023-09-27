@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: bd
+  name: bd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bd
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: bd
+    spec:
+      containers:
+      - command:
+        - sh
+        - -c
+        - echo welcome to nginx B > /usr/share/nginx/html/index.html
+        image: nginx
+        name: nginx
+        resources: {}
+status: {}

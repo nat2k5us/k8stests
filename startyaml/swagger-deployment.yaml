@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: swagger-ui-nitro
+  labels:
+    app: swagger-ui-nitro
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: swagger-ui-nitro
+  template:
+    metadata:
+      labels:
+        app: swagger-ui-nitro
+    spec:
+      containers:
+        - name: swagger-ui-container
+          image: swaggerapi/swagger-ui:latest
+          # command: ["/bin/sh", "-c", "cat /etc/config/keys"]
+          ports:
+            - containerPort: 8080
+          env:
+            - name: "SWAGGER_JSON"
+              value: "/etc/config/keys"
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/config
+      volumes:
+        - name: config-volume
+          configMap:
+            name: swagger-configmap
+            items:
+              - key: swagger.yaml
+                path: keys

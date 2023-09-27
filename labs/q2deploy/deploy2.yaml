@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: kplabls-updates
+  name: kplabls-updates
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: kplabls-updates
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: kplabls-updates
+    spec:
+      containers:
+      - image: nginx
+        name: nginx
+        resources: {}
+status: {}

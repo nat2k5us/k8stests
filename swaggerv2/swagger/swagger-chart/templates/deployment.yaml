@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "swagger-chart.fullname" . }}
+  labels:
+    {{- include "swagger-chart.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "swagger-chart.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "swagger-chart.selectorLabels" . | nindent 8 }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ include "swagger-chart.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}         
+          env:          
+            - name: "SWAGGER_JSON"
+              value: "/etc/config/keys"
+            - name: NITRO_AUTH_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: nitro
+                  key: basic_auth.username
+            - name: NITRO_AUTH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: nitro
+                  key: basic_auth.password
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          volumeMounts:
+          - mountPath: /etc/config
+            name: host-volume            
+      volumes:
+      - name: host-volume
+        configMap:
+            name: swagger-configmap
+            items:
+              - key: swagger.yaml
+                path: keys

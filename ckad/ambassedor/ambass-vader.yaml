@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: vader-pod
+  name: vader-pod
+spec:
+  volumes:
+    - name: config-haproxy-volume
+      configMap:
+        name: haproxy-config-vader
+  containers:
+  - image: ibmcase/millennium-falcon:1
+    name: vader-pod
+  - image: haproxy:1.7
+    name: haproxy-container
+    volumeMounts:
+      - name: config-haproxy-volume
+        mountPath: /usr/local/etc/haproxy/haproxy.cfg

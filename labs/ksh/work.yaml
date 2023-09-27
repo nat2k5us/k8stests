@@ -1,0 +1,742 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: project-plt-6cc-api
+  name: project-plt-6cc-api
+spec:
+  containers:
+  - image: nginx:1.17.3-alpine
+    name: project-plt-6cc-api
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: pod1
+  name: pod1
+spec:
+  containers:
+  - image: httpd:2.4.41-alpine
+    name: pod1-container
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: np1
+spec:
+  podSelector:
+    matchLabels:
+      id: frontend
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          id: api # label of the pods we want to restrict to
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+      
+
+
+
+
+
+
+    #
+    #NAME                        READY   STATUS    RESTARTS   AGE   IP           NODE               NOMINATED NODE   READINESS GATES
+    #api-5548866cb5-p4fjn        1/1     Running   0          70d   10.44.0.34   cluster1-worker1   <none>           <none>
+    #api-5548866cb5-vbrmv        1/1     Running   0          70d   10.44.0.33   cluster1-worker1   <none>           <none>
+    #frontend-5d5658f9d4-7ll22   1/1     Running   0          70d   10.44.0.41   cluster1-worker1   <none>           <none>
+    #frontend-5d5658f9d4-7njxp   1/1     Running   0          70d   10.44.0.40   cluster1-worker1   <none>           <none>
+    #frontend-5d5658f9d4-bqp95   1/1     Running   0          70d   10.44.0.43   cluster1-worker1   <none>           <none>
+    #frontend-5d5658f9d4-nz2fc   1/1     Running   0          70d   10.44.0.32   cluster1-worker1   <none>           <none>
+    #frontend-5d5658f9d4-pxv5p   1/1     Running   0          70d   10.44.0.42   cluster1-worker1   <none>           <none>
+    #NAME       TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE   SELECTOR
+    #api        ClusterIP   10.108.170.152   <none>        2222/TCP   70d   id=api
+    #frontend   ClusterIP   10.97.121.16     <none>        80/TCP     70d   id=frontend
+    #NAME       READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES                SELECTOR
+    #api        2/2     2            2           70d   python       httpd:2.4.41-alpine   id=api
+    #frontend   5/5     5            5           70d   nginx        nginx:1.17.3-alpine   id=frontend
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: neptune-10ab
+  name: neptune-10ab
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: neptune-10ab
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: neptune-10ab
+    spec:
+      serviceAccount: neptune-sa-v2
+      containers:
+      - image: httpd:2.4-alpine
+        name: neptune-pod-10ab
+        resources:
+          requests:
+            memory: 20Mi
+          limits:
+            memory: 50Mi
+status: {}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generation: 1
+  labels:
+    id: awesome-job
+    job-name: neb-new-job
+  name: neb-new-job
+  namespace: neptune
+spec:
+  backoffLimit: 6
+  completions: 3
+  parallelism: 2
+  template:
+    spec:
+      containers:
+      - command:
+        - sh
+        - -c
+        - sleep 2 && echo done
+        image: busybox:1.31.0
+        imagePullPolicy: IfNotPresent
+        name: neb-new-job-container
+      restartPolicy: Never
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: pod6
+  name: pod6
+spec:
+  containers:
+  - args:
+    - sh
+    - -c
+    - "touch /tmp/ready && sleep 1d"
+    image: busybox:1.31.0
+    name: pod6
+    readinessProbe:
+      exec:
+        command:
+        - cat
+        - /tmp/ready
+      initialDelaySeconds: 5
+      periodSeconds: 10
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    description: this is the server for the E-Commerce System my-happy-shop
+  labels:
+    id: webserver-sat-003
+  name: webserver-sat-003
+spec:
+  containers:
+  - image: nginx:1.16.1-alpine
+    name: webserver-sat
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: sunny
+  name: sunny
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: sunny
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: sunny
+    spec:
+      serviceAccountName: sa-sun-deploy
+      containers:
+      - image: nginx:1.17.3-alpine
+        name: nginx
+        resources: {}
+status: {}
+
+# 2nd Attempt
+k8s@terminal:~$ kgp
+NAME                        READY   STATUS    RESTARTS   AGE   IP           NODE               NOMINATED NODE   READINESS GATES
+api-5548866cb5-p4fjn        1/1     Running   0          71d   10.44.0.34   cluster1-worker1   <none>           <none>
+api-5548866cb5-vbrmv        1/1     Running   0          71d   10.44.0.33   cluster1-worker1   <none>           <none>
+frontend-5d5658f9d4-7ll22   1/1     Running   0          71d   10.44.0.41   cluster1-worker1   <none>           <none>
+frontend-5d5658f9d4-7njxp   1/1     Running   0          71d   10.44.0.40   cluster1-worker1   <none>           <none>
+frontend-5d5658f9d4-bqp95   1/1     Running   0          71d   10.44.0.43   cluster1-worker1   <none>           <none>
+frontend-5d5658f9d4-nz2fc   1/1     Running   0          71d   10.44.0.32   cluster1-worker1   <none>           <none>
+frontend-5d5658f9d4-pxv5p   1/1     Running   0          71d   10.44.0.42   cluster1-worker1   <none>           <none>
+k8s@terminal:~$ kgpsw
+NAME                        READY   STATUS    RESTARTS   AGE   IP           NODE               NOMINATED NODE   READINESS GATES   LABELS
+api-5548866cb5-p4fjn        1/1     Running   0          71d   10.44.0.34   cluster1-worker1   <none>           <none>            id=api,pod-template-hash=5548866cb5
+api-5548866cb5-vbrmv        1/1     Running   0          71d   10.44.0.33   cluster1-worker1   <none>           <none>            id=api,pod-template-hash=5548866cb5
+frontend-5d5658f9d4-7ll22   1/1     Running   0          71d   10.44.0.41   cluster1-worker1   <none>           <none>            id=frontend,pod-template-hash=5d5658f9d4
+frontend-5d5658f9d4-7njxp   1/1     Running   0          71d   10.44.0.40   cluster1-worker1   <none>           <none>            id=frontend,pod-template-hash=5d5658f9d4
+frontend-5d5658f9d4-bqp95   1/1     Running   0          71d   10.44.0.43   cluster1-worker1   <none>           <none>            id=frontend,pod-template-hash=5d5658f9d4
+frontend-5d5658f9d4-nz2fc   1/1     Running   0          71d   10.44.0.32   cluster1-worker1   <none>           <none>            id=frontend,pod-template-hash=5d5658f9d4
+frontend-5d5658f9d4-pxv5p   1/1     Running   0          71d   10.44.0.42   cluster1-worker1   <none>           <none>            id=frontend,pod-template-hash=5d5658f9d4
+k8s@terminal:~$ kgs --show-labels
+NAME       TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE   SELECTOR      LABELS
+api        ClusterIP   10.108.170.152   <none>        2222/TCP   71d   id=api        <none>
+frontend   ClusterIP   10.97.121.16     <none>        80/TCP     71d   id=frontend   <none>
+k8s@terminal:~$ kn neptune
+Context "kubernetes-admin@kubernetes" modified.
+k8s@terminal:~$ kcr deploy neptune-10ab --image=httpd:2.4-alpine 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: neptune-10ab
+  name: neptune-10ab
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: neptune-10ab
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: neptune-10ab
+    spec:
+      containers:
+      - image: httpd:2.4-alpine
+        name: httpd
+        resources: {}
+status: {}
+k8s@terminal:~$ kcr deploy neptune-10ab --image=httpd:2.4-alpine > 21
+k8s@terminal:~$ vi 21
+k8s@terminal:~$ kgcn
+Namespace:    neptune
+k8s@terminal:~$ ka 21
+deployment.apps/neptune-10ab created
+k8s@terminal:~$ kgp
+NAME                            READY   STATUS              RESTARTS   AGE    IP           NODE               NOMINATED NODE   READINESS GATES
+api-new-c32-75d96b7c84-64swm    1/1     Running             0          93m    10.44.0.38   cluster1-worker1   <none>           <none>
+api-new-c32-75d96b7c84-v9p98    1/1     Running             0          93m    10.44.0.50   cluster1-worker1   <none>           <none>
+api-new-c32-75d96b7c84-w9knp    1/1     Running             0          94m    10.44.0.35   cluster1-worker1   <none>           <none>
+neb-new-job--1-5snqz            0/1     Completed           0          114m   10.44.0.73   cluster1-worker1   <none>           <none>
+neb-new-job--1-6xsxb            0/1     Completed           0          114m   10.44.0.74   cluster1-worker1   <none>           <none>
+neb-new-job--1-f2xpp            0/1     Completed           0          114m   10.44.0.72   cluster1-worker1   <none>           <none>
+neptune-10ab-5c45ccb4db-ngqf2   0/1     ContainerCreating   0          9s     <none>       cluster1-worker1   <none>           <none>
+webserver-sat-003               1/1     Running             0          96m    10.44.0.73   cluster1-worker1   <none>           <none>
+k8s@terminal:~$ vi 21
+k8s@terminal:~$ ka 21
+deployment.apps/neptune-10ab configured
+k8s@terminal:~$ kgp
+NAME                            READY   STATUS      RESTARTS   AGE    IP           NODE               NOMINATED NODE   READINESS GATES
+api-new-c32-75d96b7c84-64swm    1/1     Running     0          94m    10.44.0.38   cluster1-worker1   <none>           <none>
+api-new-c32-75d96b7c84-v9p98    1/1     Running     0          94m    10.44.0.50   cluster1-worker1   <none>           <none>
+api-new-c32-75d96b7c84-w9knp    1/1     Running     0          94m    10.44.0.35   cluster1-worker1   <none>           <none>
+neb-new-job--1-5snqz            0/1     Completed   0          115m   10.44.0.73   cluster1-worker1   <none>           <none>
+neb-new-job--1-6xsxb            0/1     Completed   0          115m   10.44.0.74   cluster1-worker1   <none>           <none>
+neb-new-job--1-f2xpp            0/1     Completed   0          115m   10.44.0.72   cluster1-worker1   <none>           <none>
+neptune-10ab-5c45ccb4db-b66lh   1/1     Running     0          4s     10.44.0.85   cluster1-worker1   <none>           <none>
+neptune-10ab-5c45ccb4db-ngqf2   1/1     Running     0          46s    10.44.0.26   cluster1-worker1   <none>           <none>
+neptune-10ab-5c45ccb4db-sb7b8   1/1     Running     0          4s     10.44.0.84   cluster1-worker1   <none>           <none>
+webserver-sat-003               1/1     Running     0          97m    10.44.0.73   cluster1-worker1   <none>           <none>
+k8s@terminal:~$ kn sun
+Context "kubernetes-admin@kubernetes" modified.
+k8s@terminal:~$ kgp
+NAME           READY   STATUS    RESTARTS   AGE   IP           NODE               NOMINATED NODE   READINESS GATES
+0509649a       1/1     Running   0          71d   10.44.0.52   cluster1-worker1   <none>           <none>
+0509649b       1/1     Running   0          71d   10.44.0.49   cluster1-worker1   <none>           <none>
+1428721e       1/1     Running   0          71d   10.44.0.58   cluster1-worker1   <none>           <none>
+1428721f       1/1     Running   0          71d   10.44.0.51   cluster1-worker1   <none>           <none>
+43b9a          1/1     Running   0          71d   10.44.0.56   cluster1-worker1   <none>           <none>
+4c09           1/1     Running   0          71d   10.44.0.53   cluster1-worker1   <none>           <none>
+4c35           1/1     Running   0          71d   10.44.0.55   cluster1-worker1   <none>           <none>
+4fe4           1/1     Running   0          71d   10.44.0.54   cluster1-worker1   <none>           <none>
+5555a          1/1     Running   0          71d   10.44.0.57   cluster1-worker1   <none>           <none>
+86cda          1/1     Running   0          71d   10.44.0.65   cluster1-worker1   <none>           <none>
+8d1c           1/1     Running   0          71d   10.44.0.60   cluster1-worker1   <none>           <none>
+a004a          1/1     Running   0          71d   10.44.0.62   cluster1-worker1   <none>           <none>
+a94128196      1/1     Running   0          71d   10.44.0.59   cluster1-worker1   <none>           <none>
+afd79200c56a   1/1     Running   0          71d   10.44.0.61   cluster1-worker1   <none>           <none>
+b667           1/1     Running   0          71d   10.44.0.63   cluster1-worker1   <none>           <none>
+fdb2           1/1     Running   0          71d   10.44.0.64   cluster1-worker1   <none>           <none>
+k8s@terminal:~$ k label po --selector=type=worker protected=true
+pod/0509649b labeled
+pod/1428721e labeled
+pod/1428721f labeled
+pod/4c09 labeled
+pod/4c35 labeled
+pod/4fe4 labeled
+pod/afd79200c56a labeled
+pod/b667 labeled
+pod/fdb2 labeled
+k8s@terminal:~$ k label po --selector=type=runner protected=true
+pod/0509649a labeled
+pod/86cda labeled
+pod/a004a labeled
+pod/a94128196 labeled
+k8s@terminal:~$ k annotate po --selector=protected=true protected="do not delete this pod"
+pod/0509649a annotated
+pod/0509649b annotated
+pod/1428721e annotated
+pod/1428721f annotated
+pod/4c09 annotated
+pod/4c35 annotated
+pod/4fe4 annotated
+pod/86cda annotated
+pod/a004a annotated
+pod/a94128196 annotated
+pod/afd79200c56a annotated
+pod/b667 annotated
+pod/fdb2 annotated
+k8s@terminal:~$ ls
+10  12  13  14  16  17  18  2  20  21  3  6  7  9  index.html
+k8s@terminal:~$ cat * > cl
+k8s@terminal:~$ cat cl
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: project-plt-6cc-api
+    project: plt-6cc-api
+  name: project-plt-6cc-api
+spec:
+  containers:
+  - image: nginx:1.17.3-alpine
+    name: project-plt-6cc-api
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+#apiVersion: v1
+#kind: PersistentVolume
+#metadata:
+#  name: earth-project-earthflower-pv
+#  labels:
+#    type: local
+#spec:
+#  capacity:
+#    storage: 2Gi
+#  accessModes:
+#    - ReadWriteOnce
+#  hostPath:
+#    path: "/Volumes/Data"
+#
+#---
+#apiVersion: v1
+#kind: PersistentVolumeClaim
+#metadata:
+#  name: earth-project-earthflower-pvc
+#spec:
+#  accessModes:
+#    - ReadWriteOnce
+#  resources:
+#    requests:
+#      storage: 2Gi
+#
+#---
+#
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: project-earthflower
+  name: project-earthflower
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: project-earthflower
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: project-earthflower
+    spec:
+      volumes:
+        - name: task-pv-storage
+          persistentVolumeClaim:
+            claimName: earth-project-earthflower-pvc
+      containers:
+      - image: httpd:2.4.41-alpine
+        name: httpd
+        volumeMounts:
+          - mountPath: "/tmp/project-data"
+            name: task-pv-storage
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: moon-retain
+provisioner: moon-retainer
+reclaimPolicy: Retain
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: moon-pvc-126
+spec:
+  storageClassName: moon-retain
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 3Gi
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    id: secret-handler
+    uuid: 1428721e-8d1c-4c09-b5d6-afd79200c56a
+    red_ident: 9cf7a7c0-fdb2-4c35-9c13-c2a0bb52b4a9
+    type: automatic
+  name: secret-handler
+  namespace: moon
+spec:
+  volumes:
+  - name: cache-volume1
+    emptyDir: {}
+  - name: cache-volume2
+    emptyDir: {}
+  - name: cache-volume3
+    emptyDir: {}
+  - name: secret-volume
+    secret:
+      secretName: secret2
+  containers:
+  - name: secret-handler
+    image: bash:5.0.11
+    args: ['bash', '-c', 'sleep 2d']
+    volumeMounts:
+    - mountPath: /cache1
+      name: cache-volume1
+    - mountPath: /cache2
+      name: cache-volume2
+    - mountPath: /cache3
+      name: cache-volume3
+    - mountPath: /tmp/secret2
+      name: secret-volume
+    env:
+    - name: SECRET_KEY_1
+      value: ">8$kH#kj..i8}HImQd{"
+    - name: SECRET_KEY_2
+      value: "IO=a4L/XkRdvN8jM=Y+"
+    - name: SECRET_KEY_3
+      value: "-7PA0_Z]>{pwa43r)__"
+    - name: SECRET1_USER
+      valueFrom:
+        secretKeyRef:
+          name: secret1
+          key: user
+    - name: SECRET1_PASS
+      valueFrom:
+        secretKeyRef:
+          name: secret1
+          key: pass
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  name: cleaner
+  namespace: mercury
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      id: cleaner
+  template:
+    metadata:
+      labels:
+        id: cleaner
+    spec:
+      volumes:
+      - name: logs
+        emptyDir: {}
+      initContainers:
+      - name: init
+        image: bash:5.0.11
+        command: ['bash', '-c', 'echo init > /var/log/cleaner/cleaner.log']
+        volumeMounts:
+        - name: logs
+          mountPath: /var/log/cleaner
+      containers:
+      - name: cleaner-con
+        image: bash:5.0.11
+        args: ['bash', '-c', 'while true; do echo `date`: "remove random file" >> /var/log/cleaner/cleaner.log; sleep 1; done']
+        volumeMounts:
+        - name: logs
+          mountPath: /var/log/cleaner
+      - name: logger-con
+        image: busybox:1.31.0
+        args: [/bin/sh, -c, 'tail -f /var/log/cleaner/cleaner.log']
+        volumeMounts:
+        - name: logs
+          mountPath: /var/log/cleaner
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-init-container
+  namespace: mars
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      id: test-init-container
+  template:
+    metadata:
+      labels:
+        id: test-init-container
+    spec:
+      volumes:
+      - name: web-content
+        emptyDir: {}
+      initContainers:
+      - name: init-con
+        image: busybox:1.31.0
+        command: ['sh', '-c', "echo check this out! > index.html "]
+        volumeMounts:
+        - name: web-content
+          mountPath: /usr/share/nginx/html
+      containers:
+      - image: nginx:1.17.3-alpine
+        name: nginx
+        volumeMounts:
+        - name: web-content
+          mountPath: /usr/share/nginx/html
+        ports:
+        - containerPort: 80
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"labels":{"app":"manager-api-svc"},"name":"manager-api-svc","namespace":"mars"},"spec":{"ports":[{"name":"4444-80","port":4444,"protocol":"TCP","targetPort":80}],"selector":{"id":"manager-api-deployment"},"type":"ClusterIP"}}
+  creationTimestamp: "2021-09-16T12:09:28Z"
+  labels:
+    app: manager-api-svc
+  name: manager-api-svc
+  namespace: mars
+  resourceVersion: "2883"
+  uid: c441f88c-4345-43bf-af57-ffb913e800fc
+spec:
+  clusterIP: 10.108.54.149
+  clusterIPs:
+  - 10.108.54.149
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - name: 4444-80
+    port: 4444
+    protocol: TCP
+    targetPort: 80
+  selector:
+    id: manager-api-deployment
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: pod1
+  name: pod1
+spec:
+  containers:
+  - image: httpd:2.4.41-alpine
+    name: pod1-container
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: np1
+  namespace: venus
+spec:
+  podSelector:
+    matchLabels:
+      id: frontend
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          id: api
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: neptune-10ab
+  name: neptune-10ab
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: neptune-10ab
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: neptune-10ab
+    spec:
+      serviceAccountName: neptune-sa-v2
+      containers:
+      - image: httpd:2.4-alpine
+        name: neptune-pod-10ab
+        resources:
+          requests:
+            memory: 20Mi
+          limits: 
+            memory: 50Mi
+apiVersion: batch/v1
+kind: Job
+metadata:
+  creationTimestamp: null
+  name: neb-new-job
+spec:
+  completions: 3
+  parallelism: 2
+  template:
+    metadata:
+      labels:
+        id: awesome-job
+      creationTimestamp: null
+    spec:
+      containers:
+      - command:
+        - bin/sh
+        - -c
+        - sleep 2 && echo done
+        image: busybox:1.31.0
+        name: neb-new-job-container
+        resources: {}
+      restartPolicy: Never
+status: {}
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: pod6
+  name: pod6
+spec:
+  containers:
+  - image: busybox:1.31.0
+    name: pod6
+    command: ["bin/sh", "-c", "touch /tmp/ready && sleep 1d"]
+    readinessProbe:
+      exec:
+        command:
+        - cat
+        - /tmp/ready
+      initialDelaySeconds: 5
+      periodSeconds: 10
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    description: this is the server for the E-Commerce System my-happy-shop
+  labels:
+    id: webserver-sat-003
+  name: webserver-sat-003
+  namespace: neptune
+spec:
+  containers:
+  - image: nginx:1.16.1-alpine
+    name: webserver-sat
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: holy-api
+  name: holy-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: holy-api
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: holy-api
+    spec:
+      volumes:
+      - name: cache-volume1
+        emptyDir: {}
+      - name: cache-volume2
+        emptyDir: {}
+      - name: cache-volume3
+        emptyDir: {}
+      containers:      
+      - image: nginx:1.17.3-alpine
+        name: holy-api-container
+        securityContext:
+          allowPrivilegeEscalation: false
+          privileged: false
+        volumeMounts:
+        - mountPath: /cache1
+          name: cache-volume1
+        - mountPath: /cache2
+          name: cache-volume2
+        - mountPath: /cache3
+          name: cache-volume3
+        env:
+        - name: CACHE_KEY_1
+          value: "b&MTCi0=[T66RXm!jO@"
+        - name: CACHE_KEY_2
+          value: "PCAILGej5Ld@Q%{Q1=#"
+        - name: CACHE_KEY_3
+          value: "2qz-]2OJlWDSTn_;RFQ"
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Web Moon Webpage</title>
+</head>
+<body>
+This is some great content.
+</body>
+</html>k8s@terminal:~$ 

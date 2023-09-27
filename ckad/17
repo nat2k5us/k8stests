@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: test-init-container
+  name: test-init-container
+  namespace: mars
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-init-container
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: test-init-container
+    spec:
+      volumes:
+      - name: web-content
+        emptyDir: {}
+      initContainers:
+      - name: init-myservice
+        image: busybox:1.28
+        command: ['sh', '-c','echo "welocome to nginx" > /tmp/web-content/index.html']
+        volumeMounts:
+        - name: web-content
+          mountPath: /tmp/web-content/
+      containers:
+      - image: nginx:alpine
+        name: nginx
+        volumeMounts:
+        - name: web-content
+          mountPath: /usr/share/nginx/html
+        ports:
+        - containerPort: 80
+        resources: {}
+status: {}

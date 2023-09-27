@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "redisgo.fullname" . }}-test-connection"
+  labels:
+    {{- include "redisgo.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['{{ include "redisgo.fullname" . }}:{{ .Values.service.port }}']
+  restartPolicy: Never

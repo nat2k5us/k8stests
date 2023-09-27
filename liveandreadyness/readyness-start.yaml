@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: readyness-start
+spec:
+  containers:
+    - name: readyness-start
+      image: ubuntu
+      args:
+        - /bin/sh
+        - -c
+        - touch /tmp/healthy; sleep 10; rm -rf /tmp/healthy; sleep 600
+      readinessProbe:
+        exec:
+          command:
+            - cat
+            - /tmp/healthy
+        initialDelaySeconds: 5
+        periodSeconds: 5
+      resources:
+        requests:
+          cpu: "50m"
+          memory: "64Mi"
+        limits:
+          cpu: "100m"
+          memory: "128Mi"

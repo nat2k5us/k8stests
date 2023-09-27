@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: nginx
+  name: nginxv1
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: nginx
+    spec:
+      initContainers:
+      - image: busybox
+        name: homemodifier
+        command: ["/bin/sh", "-c", "echo verson  1 > /work-dir/index.html " ]
+        volumeMounts:
+        - name: work-dir
+          mountPath: "/work-dir"
+      volumes:
+      - name: work-dir
+        emptyDir: {}
+      containers:
+      - image: nginx
+        name: nginx
+        volumeMounts:
+        - name: work-dir
+          mountPath: "/usr/share/nginx/html"
+

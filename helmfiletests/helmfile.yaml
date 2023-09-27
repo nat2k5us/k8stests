@@ -1,0 +1,30 @@
+
+environments:
+  dev: {}
+  eng: {}
+  stg: {}
+  prod: {}
+
+helmDefaults:
+  verify: false
+  wait: true
+  timeout: 600
+  recreatePods: false
+  force: true
+  tls: false
+
+releases:  
+  - name: {{.Environment.Name}}-swagger
+    namespace: nitro
+    chart: charts/nitro-swagger
+    hooks:      
+      - events: ["clean"]
+        command: "echo"
+        args: ["{{`{{.Environment.Name}}`}}", "{{`{{.Release.Name}}`}}", "{{`{{.HelmfileCommand}}`}}"]
+    recreatePods: true
+
+      
+
+
+
+

@@ -1,0 +1,56 @@
+
+alias k=kubectl
+alias cls='clear'
+alias cl='clear'
+alias ka='kubectl apply -f'
+alias kc='kubectl create '
+alias kgw='kubectl get -o wide'
+alias kgp='kubectl get pods -o wide'
+alias kgd='kubectl get deployments -o wide'
+alias kgh='kubectl get hpa'
+alias kg='kubectl get -o wide --show-labels'
+alias kgs='kubectl get svc -o wide'
+alias kgn='kubectl get nodes -o wide --show-labels'
+----------------------------------------------------------------
+alias ka='k apply -f ';alias kg='k get ';alias kd='k delete --grace-period=0 --force';alias ke='k explain ';alias kde='k describe ';alias kr='k run --dry-run=client -oyaml';alias kt='k run tmp --image=nginx:alpine --rm -it --restart=Never ';alias kx=k exec -i -t ' ';'alias kc='k create '
+alias kro='k rollout ';alias kn='k config set-context --current --namespace ';
+
+
+----------------------------------------------------------------
+
+alias kgpsw='kubectl get pods -o wide --show-labels'
+alias kgcm='kubectl get configmaps -o wide'
+alias kccm='kubectl create configmap'
+alias kgse='kubectl get secrets -o wide'
+alias kgss='kubectl get statefulsets -o wide'
+alias kgr='kubectl get replicasets -o wide'
+alias kge='kubectl get ep -o wide'
+alias kgi='kubectl get ingress -o wide'
+alias kgj='kubectl get jobs -o wide'
+alias kgcj='kubectl get cronjobs -o wide'
+alias kgsa='kubectl get sa -o wide'
+alias kgpv='kubectl get pv -o wide'
+alias kgpvc='kubectl get pvc -o wide'
+alias kd='kubectl delete --grace-period=0 --force'
+alias ke='kubectl explain'
+alias kde='kubectl describe'
+alias kr="kubectl run --dry-run=client -oyaml"
+alias kt='kubectl run tmp --image=nginx:alpine --rm -it --restart=Never '
+alias kcr='kubectl --dry-run=client -oyaml create '
+alias kn='kubectl config set-context --current --namespace '
+alias kgc='k config get-contexts '
+alias ksc='kubectl config use-context '
+alias kx='kubectl exec -i -t ' # param = pod name
+alias kl='kubectl logs '
+alias ke='k explain '
+alias kgcc='k config current-context'
+alias kp="kubectl patch pvc  -p '{"metadata":{"finalizers":null}}' "
+alias pod=‘kubectl run $name --image=$image --dry-run=client -o yaml > $name_$image_pod.yaml && vi $name_$image_pod.yaml’
+export do=" --dry-run=client -oyaml "
+# service name param
+alias testsvc='kubectl run test-nslookup --image=busybox:1.28 --rm -it --restart=Never -- nslookup  ' 
+# pod ip as param
+alias testpod='kubectl run test-nslookup --image=busybox:1.28 --rm -it --restart=Never -- nslookup  '
+alias podawk=k get po pod1 --no-headers | awk 'F=" " { print $3 }' 
+alias kall='k get all -A'
+alias yqclean="yq eval 'del(.status,.spec.volumes,.metadata.annotations,.metadata.creationTimestamp,.metadata.managedFields,.spec.tolerations)' - "

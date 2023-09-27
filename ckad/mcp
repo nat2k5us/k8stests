@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: mcp
+  name: mcp
+spec:
+  containers:
+  - name: mcp-1
+    image: busybox:1.28
+    command: ['sh', '-c', 'ls && sleep 3600']
+  - name: mcp-2
+    image: busybox:1.28
+    command: ['sh', '-c', "echo Hello World; sleep 3600"]
+  - name: mcp-3
+    image: busybox:1.28
+    command: ['sh', '-c', "echo from third container ; sleep 3600"]

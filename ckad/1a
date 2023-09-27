@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: demo-v2
+  name: blue
+spec:
+  volumes:
+  - name: webpage-data
+    hostPath:
+      path: "/usr/share/nginx/html"
+  containers:
+  - image: nginx
+    name: blue
+    volumeMounts:
+    - name: webpage-data
+      mountPath: "/usr/share/nginx/html"
+    resources:
+      requests:
+        cpu: 1
+        memory: 1Mi
+      limits:
+        cpu: 1
+        memory: 1
+  initContainers:
+  - name: init-myservice
+    image: nginx
+    volumeMounts:
+    - name: webpage-data
+      mountPath: "/usr/share/nginx/html"
+    command: ["/bin/sh"]
+    args: ["-c", "echo 'Welcome to Green Pod' > /usr/share/nginx/html/index.html"]
+

@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: frontend
+  name: frontend
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: frontend
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - image: lfccncf/nginx:1.13.7
+        name: nginx
+        env:
+        - name:NGINX_PORT
+        value: "8080"
+        ports:
+        - containerPort: 80
+        resources: {}
+status: {}

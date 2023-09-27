@@ -1,0 +1,10 @@
+helmDefaults:
+  historyMax: 3
+
+helmfiles:
+  - helmfiles.d/*.yaml
+
+
+environments:
+  eng: {}
+  prod: {}

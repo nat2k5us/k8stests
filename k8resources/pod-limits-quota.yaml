@@ -1,0 +1,19 @@
+# requests are guranteed to be available
+# limits prevent the containers from going over the allocated resources
+# kubectl describe node output "Table" is used by the scheduler to schedule pods on nodes
+# kubectl run kplabs-quota --image=nginx --restart=Never --dry-run -o yaml > quotas.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-practice-test1
+spec:
+  containers:
+  - name: resources-container
+    image: nginx
+    resources: 
+      requests:
+        memory: "128Mi"
+        cpu: "0.5"
+      limits:
+        memory: "512Mi"
+        cpu: "2"

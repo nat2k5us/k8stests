@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-from-file
+  namespace: nitro
+data:
+  config.yaml: |-
+    {{ toYaml (.Files.Get "./swagger.yaml") . | indent 4}}
+
+

@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: test-deploy
+  name: test-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-deploy
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: test-deploy
+    spec:
+      containers:
+        - args:
+            - /bin/sh
+            - -c
+            - ls;sleep 3600
+          image: busybox
+          name: mcp
+        - env:
+            - name: NGINX_PORT
+              value: "8080"
+          image: nginx
+          name: mcp-2
+

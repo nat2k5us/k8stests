@@ -1,0 +1,11 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: swagger-ui-nitro
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP
+      name: http

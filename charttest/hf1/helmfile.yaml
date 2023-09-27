@@ -1,0 +1,30 @@
+
+#default values to set for args along with dedicated keys that can be set by contributors, cli args take precedence over these
+helmDefaults:
+  historyMax: 3
+  # # path to TLS CA certificate file (default "$HELM_HOME/ca.pem")
+  # tlsCACert: "path/to/ca.pem"
+  # # path to TLS certificate file (default "$HELM_HOME/cert.pem")
+  # tlsCert: "path/to/cert.pem"
+  # # path to TLS key file (default "$HELM_HOME/key.pem")
+  # tlsKey: "path/to/key.pem"
+
+  # The desired states of Helm releases.
+  #
+  # Helmfile runs various helm commands to converge the current state in the live cluster to the desired state defined here.
+helmfiles:
+  - helmfiles.d/*.yaml
+
+#
+# Advanced Configuration: Environments
+#
+
+# The list of environments managed by helmfile.
+#
+# The default is `environments: {"default": {}}` which implies:
+#
+# - `{{ .Environment.Name }}` evaluates to "default"
+# - `{{ .Values }}` being empty
+environments:
+  eng: {}
+  prod: {}

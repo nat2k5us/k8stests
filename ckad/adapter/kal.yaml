@@ -1,0 +1,43 @@
+# adapter
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: kal
+  name: kal
+spec:
+  volumes:
+  - name: shared-volume
+    emptyDir: {}
+  - name: config-volume
+    configMap:
+      name: fluentd-config
+  containers:
+  - image: busybox
+    name: kal
+    volumeMounts:
+    - name: shared-volume
+      mountPath: /var/log
+    args:
+    - /bin/sh
+    - -c
+    - >
+      i=0;
+      while true;
+      do
+        echo "$i: $(date)" >> /var/log/1.log;
+        echo "$(date) INFO $i" >> /var/log/2.log;
+        i=$((i+1));
+        sleep 1;
+      done
+  - image: k8s.gcr.io/fluentd-gcp:1.30
+    name: fluentd-container
+    volumeMounts:
+    - name: shared-volume
+      mountPath: /var/log
+    - name: config-volume
+      mountPath: /etc/fluentd-config
+    env:
+    - name: FLUENTD_ARGS
+      value: -c /etc/fluentd-config/fluentd.conf
+

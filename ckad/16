@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: cleaner
+  name: cleaner
+  namespace: mercury
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cleaner
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: cleaner
+    spec:
+      volumes:
+      - name: log-volume
+        emptyDir: {}
+      containers:
+      - image: nginx:alpine
+        name: nginx
+        command: ["sh", "-c", "while true;do echo 'Hello'; date  >> /var/log/1.log;sleep 1; done"]
+        volumeMounts:
+        - name: log-volume
+          mountPath: /var/log
+      - image: busybox:1.31.0
+        name: logger-con
+        command: ["bin/sh", "-c", "tail -f /var/log/1.log"]
+        volumeMounts:
+        - name: log-volume
+          mountPath: /var/log
